@@ -70,6 +70,13 @@ A render.yaml blueprint is included. Set STUDY_TRACKER_SYNC_KEY to a random priv
 
 Native Android project foundation: open the `android/` directory in Android Studio. It contains the Kotlin/Compose app shell, Pruden Technologies P branding, local persistence foundation, lesson reminder scheduler, and Android build CI.
 
+## Accounts and privacy
+
+The web release includes username/password registration and login. Sessions use an HttpOnly cookie, and academic state is stored per user. New accounts start with an empty workspace and enter their own profile, institution, program, semesters and timetable. Profile photos are resized in the browser before storage.
+
+No personal student details or the supplied Semester 3 timetable are included in the public default seed.
+
+For Render, use a persistent relational datastore for real long-term accounts. The repository keeps SQLite as a local development fallback; Render Free services have ephemeral filesystems, so their local SQLite data is lost on restarts, redeploys and spin-downs. Render documents Free Postgres as persistent but time-limited to 30 days. 
 ## Roadmap
 
 1. Native Android app using Kotlin + Jetpack Compose + Room
