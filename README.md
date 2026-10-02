@@ -66,6 +66,10 @@ When STUDY_TRACKER_SYNC_KEY is set, send it as the x-sync-key request header.
 
 A render.yaml blueprint is included. Set STUDY_TRACKER_SYNC_KEY to a random private value in Render before enabling server sync.
 
+## Android
+
+Native Android project foundation: open the `android/` directory in Android Studio. It contains the Kotlin/Compose app shell, Pruden Technologies P branding, local persistence foundation, lesson reminder scheduler, and Android build CI.
+
 ## Roadmap
 
 1. Native Android app using Kotlin + Jetpack Compose + Room
