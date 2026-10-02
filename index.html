@@ -1,138 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Study Tracker</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <div class="page-shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Student dashboard</p>
-          <h1>Study Tracker</h1>
-        </div>
-        <button id="resetBtn" class="ghost-btn" type="button">Reset data</button>
-      </header>
-
-      <main class="dashboard">
-        <section class="panel form-panel">
-          <div class="panel-header">
-            <h2>Add study session</h2>
-            <span class="badge success">Keep momentum</span>
-          </div>
-
-          <form id="sessionForm">
-            <div class="field-row two-col">
-              <label>
-                <span>Subject</span>
-                <input id="subjectInput" name="subject" type="text" placeholder="Math, Biology..." list="subjectSuggestions" required />
-              </label>
-
-              <label>
-                <span>Minutes</span>
-                <input id="minutesInput" name="minutes" type="number" min="15" max="600" step="15" value="45" required />
-              </label>
-            </div>
-
-            <div class="field-row two-col">
-              <label>
-                <span>Date</span>
-                <input id="dateInput" name="date" type="date" required />
-              </label>
-
-              <label>
-                <span>Session type</span>
-                <select id="typeInput" name="type">
-                  <option value="Revision">Revision</option>
-                  <option value="Practice">Practice</option>
-                  <option value="Reading">Reading</option>
-                  <option value="Notes">Notes</option>
-                  <option value="Homework">Homework</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="quick-add-row">
-              <button type="button" class="chip-btn" data-minutes="25">25 min</button>
-              <button type="button" class="chip-btn" data-minutes="45">45 min</button>
-              <button type="button" class="chip-btn" data-minutes="60">60 min</button>
-              <button type="button" class="chip-btn" data-minutes="90">90 min</button>
-            </div>
-
-            <button class="primary-btn" type="submit">Save session</button>
-          </form>
-        </section>
-
-        <section class="stats-grid">
-          <article class="stat-card">
-            <p>Total time</p>
-            <h3 id="totalHours">0h</h3>
-            <span id="totalSessions">0 sessions</span>
-          </article>
-
-          <article class="stat-card">
-            <p>Study streak</p>
-            <h3 id="streakCount">0 days</h3>
-            <span>Consecutive days</span>
-          </article>
-
-          <article class="stat-card">
-            <p>Best subject</p>
-            <h3 id="bestSubject">—</h3>
-            <span id="bestSubjectMinutes">0 min</span>
-          </article>
-
-          <article class="stat-card accent">
-            <p>Average session</p>
-            <h3 id="averageSession">0 min</h3>
-            <span>Per study block</span>
-          </article>
-        </section>
-
-        <section class="panel chart-panel">
-          <div class="panel-header">
-            <h2>Last 7 days</h2>
-            <span class="badge neutral" id="weeklyTotal">0 min</span>
-          </div>
-          <div id="weeklyChart" class="weekly-chart" aria-label="Weekly study chart"></div>
-        </section>
-
-        <section class="panel breakdown-panel">
-          <div class="panel-header">
-            <h2>Subject breakdown</h2>
-            <span class="badge neutral">By total time</span>
-          </div>
-          <div id="subjectList" class="subject-list"></div>
-        </section>
-
-        <section class="panel list-panel">
-          <div class="panel-header">
-            <h2>Recent sessions</h2>
-            <span class="badge neutral" id="sessionCountBadge">0</span>
-          </div>
-          <div id="sessionList" class="session-list"></div>
-        </section>
-      </main>
-    </div>
-
-    <datalist id="subjectSuggestions">
-      <option value="Math"></option>
-      <option value="Biology"></option>
-      <option value="Chemistry"></option>
-      <option value="Physics"></option>
-      <option value="History"></option>
-      <option value="Literature"></option>
-      <option value="Computer Science"></option>
-      <option value="Languages"></option>
-      <option value="Economics"></option>
-      <option value="Geography"></option>
-    </datalist>
-
-    <script src="app.js"></script>
-  </body>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#08111f"><meta name="description" content="Study Tracker — semesters, timetable, lessons, tasks, attendance and study sessions.">
+<title>Study Tracker | JARK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-mark">ST</div><div><strong>Study Tracker</strong><small>JARK student system</small></div></div>
+  <nav>
+    <button class="nav-btn active" data-view="dashboard">⌂ <span>Dashboard</span></button>
+    <button class="nav-btn" data-view="timetable">▦ <span>Timetable</span></button>
+    <button class="nav-btn" data-view="calendar">◷ <span>Calendar</span></button>
+    <button class="nav-btn" data-view="units">▤ <span>Units</span></button>
+    <button class="nav-btn" data-view="tasks">✓ <span>Tasks & Assessments</span></button>
+    <button class="nav-btn" data-view="attendance">◉ <span>Attendance</span></button>
+    <button class="nav-btn" data-view="sessions">⏱ <span>Study Sessions</span></button>
+    <button class="nav-btn" data-view="semesters">◆ <span>Semesters</span></button>
+    <button class="nav-btn" data-view="settings">⚙ <span>Settings</span></button>
+  </nav>
+  <div class="sidebar-foot"><span class="status-dot"></span> Local-first • No account required</div>
+</aside>
+<main class="main">
+<header class="topbar"><div><p class="eyebrow">STUDENT CONTROL CENTER</p><h1 id="pageTitle">Dashboard</h1></div>
+<div class="top-actions"><select id="semesterSelect" aria-label="Active semester"></select><button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button></div></header>
+<div id="appView"></div>
+</main>
+</div>
+<div class="modal hidden" id="modal"><div class="modal-card"><div class="modal-head"><h2 id="modalTitle"></h2><button class="icon-btn" id="closeModal">×</button></div><div id="modalBody"></div></div></div>
+<div id="toast" class="toast"></div>
+<script src="app.js"></script>
+</body>
 </html>
