@@ -1,37 +1,78 @@
 # Study Tracker
 
-A local-first student study and semester management system.
+Study Tracker is a local-first student operating system by PRUDEN TECHNOLOGIES.
 
-## V1
+It is designed to grow with a student across every semester instead of becoming a one-semester timetable app.
 
-- Multiple semesters and switching
-- Semester 3 seeded with the current timetable
-- Weekly repeating timetable with editable lessons and reminder settings
-- Units / subjects
-- Assignments, CATs, tests, exams, projects and revision tasks
-- Attendance per unit
+## Product scope
+
+### Academic management
+- Multiple semesters with start/end dates and switching
+- Units with room, lecturer, code and independent-study targets
+- Recurring weekly timetable
+- Editable lesson times, rooms and reminder minutes
+- Assignments, CATs, tests, exams, projects and revision work
+- Attendance tracking by unit
+- Assessment grade recording
+- Calendar events and deadlines
+
+### Study intelligence
 - Study-session logging
-- Academic calendar/events
-- Dark/light mode
-- JSON export/import backup
-- Browser notification permission flow
-- Responsive desktop/mobile UI
-- No login, backend, database server or credentials required
+- Weekly and semester study targets
+- Focus Lab timer
+- Study effort by unit
+- Attendance, task-completion and grade analytics
+- Notes
+- Saved learning resources and links
 
-## Seeded Semester 3 timetable
+### Platform
+- Local-first browser storage
+- JSON backup export/import
+- Optional Express REST backend
+- SQLite persistence
+- Optional sync-key protection for backend state
+- PWA manifest and service worker
+- Responsive mobile/desktop interface
+- Pruden Technologies P mark
 
-Operating System: Tuesday 08:00–10:00 L24; Wednesday 08:00–10:00 L23; Friday 08:00–10:00 L21.
+## Semester 3 seed
 
-Computer Application II: Monday 10:15–12:00 L21; Tuesday 10:15–12:00 L22; Thursday 15:15–17:00 L15.
+The current timetable is preloaded for the October–December 2026 semester:
 
-Structured Programming: Tuesday 15:15–17:00 L20; Thursday 10:15–12:00 L22.
+- Operating System — Tuesday 08:00–10:00 L24; Wednesday 08:00–10:00 L23; Friday 08:00–10:00 L21
+- Computer Application II — Monday 10:15–12:00 L21; Tuesday 10:15–12:00 L22; Thursday 15:15–17:00 L15
+- Structured Programming — Tuesday 15:15–17:00 L20; Thursday 10:15–12:00 L22
+
+## Run locally
+
+Install Node.js, then:
+
+npm install
+npm start
+
+Open http://localhost:3000.
+
+The app still works as a local browser app when opened directly, although backend sync and service-worker features require serving it over HTTP.
+
+## Backend API
+
+- GET /api/health — health/version/status
+- GET /api/state — load persisted application state
+- PUT /api/state — persist the application state
+
+When STUDY_TRACKER_SYNC_KEY is set, send it as the x-sync-key request header.
+
+## Render
+
+A render.yaml blueprint is included. Set STUDY_TRACKER_SYNC_KEY to a random private value in Render before enabling server sync.
 
 ## Roadmap
 
-1. Native Android APK
-2. Reliable Android lesson alarms
-3. Timetable import from CSV/JSON, later PDF/image
-4. Optional AI study assistant
-5. Optional cloud sync
+1. Native Android app using Kotlin + Jetpack Compose + Room
+2. Native Android lesson alarms and notification channels
+3. Timetable import from CSV/JSON, then PDF/image parsing
+4. AI study assistant and adaptive revision planning
+5. Optional secure multi-device account/cloud sync
+6. Optional institution/teacher mode
 
-V1 is intentionally local-first. The semester-based data model lets future semesters use the same app without rebuilding it.
+The current web system is the product foundation; Android can consume the same semester data model without redesigning the academic concepts.
