@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.StudyTracker" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:statusBarColor">@color/pruden_navy</item>
+        <item name="android:navigationBarColor">@color/pruden_navy</item>
+    </style>
+</resources>
