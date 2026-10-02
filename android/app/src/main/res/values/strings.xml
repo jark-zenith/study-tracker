@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Study Tracker</string>
+    <string name="brand_name">PRUDEN TECHNOLOGIES</string>
+    <string name="brand_subtitle">STUDENT OPERATING SYSTEM</string>
+    <string name="notification_channel_name">Lesson reminders</string>
+</resources>
