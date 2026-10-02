@@ -1,290 +1,67 @@
-const STORAGE_KEY = 'study-tracker-sessions-v1';
-
-const demoSessions = [
-  { id: crypto.randomUUID(), subject: 'Math', minutes: 50, date: '2026-10-01', type: 'Practice' },
-  { id: crypto.randomUUID(), subject: 'Biology', minutes: 35, date: '2026-10-01', type: 'Reading' },
-  { id: crypto.randomUUID(), subject: 'History', minutes: 40, date: '2026-09-30', type: 'Revision' },
-  { id: crypto.randomUUID(), subject: 'Computer Science', minutes: 65, date: '2026-09-29', type: 'Homework' },
-  { id: crypto.randomUUID(), subject: 'Chemistry', minutes: 45, date: '2026-09-28', type: 'Practice' },
-  { id: crypto.randomUUID(), subject: 'Math', minutes: 55, date: '2026-09-27', type: 'Revision' },
-  { id: crypto.randomUUID(), subject: 'Languages', minutes: 30, date: '2026-09-26', type: 'Reading' },
-];
-
-const form = document.getElementById('sessionForm');
-const subjectInput = document.getElementById('subjectInput');
-const minutesInput = document.getElementById('minutesInput');
-const dateInput = document.getElementById('dateInput');
-const typeInput = document.getElementById('typeInput');
-const sessionList = document.getElementById('sessionList');
-const weeklyChart = document.getElementById('weeklyChart');
-const subjectList = document.getElementById('subjectList');
-const resetBtn = document.getElementById('resetBtn');
-
-const totalHoursEl = document.getElementById('totalHours');
-const totalSessionsEl = document.getElementById('totalSessions');
-const streakCountEl = document.getElementById('streakCount');
-const bestSubjectEl = document.getElementById('bestSubject');
-const bestSubjectMinutesEl = document.getElementById('bestSubjectMinutes');
-const averageSessionEl = document.getElementById('averageSession');
-const weeklyTotalEl = document.getElementById('weeklyTotal');
-const sessionCountBadge = document.getElementById('sessionCountBadge');
-
-const formatDateForInput = (date = new Date()) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const loadSessions = () => {
-  const saved = localStorage.getItem(STORAGE_KEY);
-
-  if (!saved) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(demoSessions));
-    return [...demoSessions];
-  }
-
-  try {
-    const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) && parsed.length ? parsed : [...demoSessions];
-  } catch {
-    return [...demoSessions];
-  }
-};
-
-let sessions = loadSessions();
-
-const saveSessions = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
-
-const sortedSessions = () => [...sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-const getWeekDates = () => {
-  const dates = [];
-  const today = new Date();
-
-  for (let i = 6; i >= 0; i -= 1) {
-    const current = new Date(today);
-    current.setDate(today.getDate() - i);
-    dates.push(current);
-  }
-
-  return dates;
-};
-
-const formatHours = (minutesTotal) => {
-  const hours = minutesTotal / 60;
-
-  if (hours >= 1) {
-    return `${hours.toFixed(hours % 1 === 0 ? 0 : 1)}h`;
-  }
-
-  return `${minutesTotal}m`;
-};
-
-const getStudyStreak = () => {
-  if (!sessions.length) return 0;
-
-  const uniqueDates = new Set(
-    sessions.map((session) => new Date(session.date).toISOString().slice(0, 10))
-  );
-
-  const today = new Date();
-  let streak = 0;
-
-  for (let i = 0; i < 365; i += 1) {
-    const current = new Date(today);
-    current.setDate(today.getDate() - i);
-    const key = current.toISOString().slice(0, 10);
-
-    if (uniqueDates.has(key)) {
-      streak += 1;
-    } else if (i > 0) {
-      break;
-    }
-  }
-
-  return streak;
-};
-
-const renderStats = () => {
-  const totalMinutes = sessions.reduce((sum, session) => sum + Number(session.minutes || 0), 0);
-  const totalHours = totalMinutes / 60;
-  const average = sessions.length ? Math.round(totalMinutes / sessions.length) : 0;
-
-  const bySubject = sessions.reduce((map, session) => {
-    const key = session.subject;
-    map[key] = (map[key] || 0) + Number(session.minutes || 0);
-    return map;
-  }, {});
-
-  const best = Object.entries(bySubject).sort((a, b) => b[1] - a[1])[0];
-
-  totalHoursEl.textContent = totalHours >= 1 ? `${totalHours.toFixed(totalHours % 1 === 0 ? 0 : 1)}h` : `${totalMinutes}m`;
-  totalSessionsEl.textContent = `${sessions.length} session${sessions.length === 1 ? '' : 's'}`;
-  streakCountEl.textContent = `${getStudyStreak()} day${getStudyStreak() === 1 ? '' : 's'}`;
-  bestSubjectEl.textContent = best ? best[0] : '—';
-  bestSubjectMinutesEl.textContent = best ? `${best[1]} min` : '0 min';
-  averageSessionEl.textContent = `${average} min`;
-};
-
-const renderWeeklyChart = () => {
-  const days = getWeekDates();
-  const totalByDay = days.map((day) => {
-    const dateKey = day.toISOString().slice(0, 10);
-    const minutes = sessions
-      .filter((session) => new Date(session.date).toISOString().slice(0, 10) === dateKey)
-      .reduce((sum, session) => sum + Number(session.minutes || 0), 0);
-
-    return { day, minutes };
-  });
-
-  const maxMinutes = Math.max(...totalByDay.map((item) => item.minutes), 1);
-  const weeklyTotal = totalByDay.reduce((sum, item) => sum + item.minutes, 0);
-  weeklyTotalEl.textContent = `${weeklyTotal} min`;
-
-  weeklyChart.innerHTML = totalByDay
-    .map(({ day, minutes }) => {
-      const height = Math.max(12, (minutes / maxMinutes) * 100);
-      const label = day.toLocaleDateString('en-US', { weekday: 'short' });
-      return `
-        <div class="day-segment">
-          <div class="bar-wrap">
-            <div class="bar" style="height: ${height}%"></div>
-          </div>
-          <span class="day-total">${minutes}m</span>
-          <span class="day-label">${label}</span>
-        </div>
-      `;
-    })
-    .join('');
-};
-
-const renderSubjectBreakdown = () => {
-  const bySubject = sessions.reduce((map, session) => {
-    const key = session.subject;
-    map[key] = (map[key] || 0) + Number(session.minutes || 0);
-    return map;
-  }, {});
-
-  const totalMinutes = Object.values(bySubject).reduce((sum, value) => sum + value, 0) || 1;
-  const entries = Object.entries(bySubject).sort((a, b) => b[1] - a[1]);
-
-  subjectList.innerHTML = entries.length
-    ? entries
-        .map(([subject, minutes]) => {
-          const percentage = Math.max((minutes / totalMinutes) * 100, 8);
-          return `
-            <div class="subject-row">
-              <div class="subject-meta">
-                <span>${subject}</span>
-                <strong>${minutes} min</strong>
-              </div>
-              <div class="subject-bar">
-                <div class="subject-fill" style="width: ${percentage}%"></div>
-              </div>
-            </div>
-          `;
-        })
-        .join('')
-    : '<div class="empty-state">No subjects yet. Add your first study session.</div>';
-};
-
-const renderSessions = () => {
-  const items = sortedSessions();
-  sessionCountBadge.textContent = String(items.length);
-
-  if (!items.length) {
-    sessionList.innerHTML = '<div class="empty-state">Your study history will appear here.</div>';
-    return;
-  }
-
-  sessionList.innerHTML = items
-    .map(
-      (session) => `
-        <div class="session-item">
-          <div class="session-main">
-            <div class="session-top">
-              <span class="session-title">${session.subject}</span>
-              <span class="session-tag">${session.type}</span>
-            </div>
-            <div class="session-meta">
-              ${session.minutes} min • ${new Date(session.date).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </div>
-          </div>
-          <div class="session-actions">
-            <button class="delete-btn" data-id="${session.id}" type="button">Delete</button>
-          </div>
-        </div>
-      `
-    )
-    .join('');
-};
-
-const updateDashboard = () => {
-  renderStats();
-  renderWeeklyChart();
-  renderSubjectBreakdown();
-  renderSessions();
-};
-
-form.addEventListener('submit', (event) => {
-  event.preventDefault();
-
-  const subject = subjectInput.value.trim();
-  const minutes = Number(minutesInput.value);
-  const date = dateInput.value || formatDateForInput();
-  const type = typeInput.value;
-
-  if (!subject || !minutes || minutes <= 0) {
-    return;
-  }
-
-  sessions.unshift({
-    id: crypto.randomUUID(),
-    subject,
-    minutes,
-    date,
-    type,
-  });
-
-  saveSessions();
-  form.reset();
-  dateInput.value = formatDateForInput();
-  minutesInput.value = 45;
-  typeInput.value = 'Revision';
-  subjectInput.focus();
-  updateDashboard();
-});
-
-resetBtn.addEventListener('click', () => {
-  const confirmReset = window.confirm('Reset all study data?');
-  if (!confirmReset) return;
-
-  sessions = [...demoSessions];
-  saveSessions();
-  updateDashboard();
-});
-
-sessionList.addEventListener('click', (event) => {
-  const button = event.target.closest('.delete-btn');
-  if (!button) return;
-
-  const { id } = button.dataset;
-  sessions = sessions.filter((session) => session.id !== id);
-  saveSessions();
-  updateDashboard();
-});
-
-document.querySelectorAll('.chip-btn').forEach((button) => {
-  button.addEventListener('click', () => {
-    const minutes = Number(button.dataset.minutes || 45);
-    minutesInput.value = minutes;
-  });
-});
-
-dateInput.value = formatDateForInput();
-updateDashboard();
+const KEY='study-tracker-v3';
+const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const state=load();
+const $=s=>document.querySelector(s);
+const id=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+Math.random().toString(16).slice(2);
+const today=()=>new Date().toISOString().slice(0,10);
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x)return x}catch{}return{theme:'dark',view:'dashboard',activeSemesterId:'sem3-2026',semesters:[{id:'sem3-2026',name:'Semester 3',year:'2026',start:'2026-10-01',end:'2026-12-31',status:'active'},{id:'sem1-2026',name:'Semester 1',year:'2026',start:'2026-01-01',end:'2026-04-30',status:'completed'},{id:'sem2-2026',name:'Semester 2',year:'2026',start:'2026-05-01',end:'2026-09-30',status:'completed'}],units:[{id:'u-os',semesterId:'sem3-2026',name:'Operating System',code:'',room:'L24'},{id:'u-ca2',semesterId:'sem3-2026',name:'Computer Application II',code:'',room:'L21'},{id:'u-sp',semesterId:'sem3-2026',name:'Structured Programming',code:'',room:'L20'}],lessons:[{id:'l1',semesterId:'sem3-2026',unitId:'u-os',day:'Tuesday',start:'08:00',end:'10:00',room:'L24',reminder:15},{id:'l2',semesterId:'sem3-2026',unitId:'u-os',day:'Wednesday',start:'08:00',end:'10:00',room:'L23',reminder:15},{id:'l3',semesterId:'sem3-2026',unitId:'u-os',day:'Friday',start:'08:00',end:'10:00',room:'L21',reminder:15},{id:'l4',semesterId:'sem3-2026',unitId:'u-ca2',day:'Monday',start:'10:15',end:'12:00',room:'L21',reminder:15},{id:'l5',semesterId:'sem3-2026',unitId:'u-ca2',day:'Tuesday',start:'10:15',end:'12:00',room:'L22',reminder:15},{id:'l6',semesterId:'sem3-2026',unitId:'u-ca2',day:'Thursday',start:'15:15',end:'17:00',room:'L15',reminder:15},{id:'l7',semesterId:'sem3-2026',unitId:'u-sp',day:'Tuesday',start:'15:15',end:'17:00',room:'L20',reminder:15},{id:'l8',semesterId:'sem3-2026',unitId:'u-sp',day:'Thursday',start:'10:15',end:'12:00',room:'L22',reminder:15}],tasks:[],attendance:[],sessions:[],events:[]}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function activeSem(){return state.semesters.find(s=>s.id===state.activeSemesterId)||state.semesters[0]}
+function units(){return state.units.filter(x=>x.semesterId===state.activeSemesterId)}
+function lessons(){return state.lessons.filter(x=>x.semesterId===state.activeSemesterId)}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function fmtDate(d){return new Date(d+'T00:00').toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'})}
+function unitName(uid){return state.units.find(u=>u.id===uid)?.name||'Unknown unit'}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+function openModal(title,body){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;$('#modal').classList.remove('hidden')}
+function closeModal(){$('#modal').classList.add('hidden')}
+$('#closeModal').onclick=closeModal;$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()}
+function setView(v){state.view=v;save();document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));$('#pageTitle').textContent={dashboard:'Dashboard',timetable:'Timetable',calendar:'Calendar',units:'Units',tasks:'Tasks & Assessments',attendance:'Attendance',sessions:'Study Sessions',semesters:'Semesters',settings:'Settings'}[v];render()}
+document.querySelectorAll('.nav-btn').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+$('#semesterSelect').onchange=e=>{state.activeSemesterId=e.target.value;save();render()};
+$('#themeBtn').onclick=()=>{state.theme=state.theme==='dark'?'light':'dark';applyTheme();save()};
+function applyTheme(){document.body.dataset.theme=state.theme}
+function renderSelect(){$('#semesterSelect').innerHTML=state.semesters.map(x=>'<option value="'+x.id+'" '+(x.id===state.activeSemesterId?'selected':'')+'>'+esc(x.name)+' • '+x.year+'</option>').join('')}
+function card(title,value,sub,cls=''){return '<article class="stat '+cls+'"><span>'+title+'</span><strong>'+value+'</strong><small>'+sub+'</small></article>'}
+function nextLesson(){const now=new Date(),day=now.toLocaleDateString('en-US',{weekday:'long'}),mins=now.getHours()*60+now.getMinutes(),arr=lessons().map(l=>({...l,mi:+l.start.slice(0,2)*60+ +l.start.slice(3)})).sort((a,b)=>a.mi-b.mi);return arr.find(l=>l.day===day&&l.mi>mins)||arr.find(l=>DAYS.indexOf(l.day)>DAYS.indexOf(day))||arr[0]}
+function renderDashboard(){const sem=activeSem(),ss=state.sessions.filter(x=>x.semesterId===sem.id),total=ss.reduce((a,x)=>a+Number(x.minutes),0),upcoming=state.tasks.filter(x=>x.semesterId===sem.id&&x.due>=today()).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,4),nl=nextLesson();return '<section class="hero"><div><span class="pill">ACTIVE • '+esc(sem.name)+'</span><h2>'+esc(sem.name)+' control center</h2><p>'+fmtDate(sem.start)+' → '+fmtDate(sem.end)+'. Plan classes, track work and build your study record.</p></div><button class="primary" onclick="quickTask()">＋ Add task</button></section><div class="stats">'+card('Units',units().length,'in this semester')+card('Classes / week',lessons().length,'scheduled lessons')+card('Study time',Math.floor(total/60)+'h '+total%60+'m',ss.length+' sessions')+card('Open tasks',state.tasks.filter(x=>x.semesterId===sem.id&&x.status!=='done').length,'not completed','accent')+'</div><div class="grid2"><section class="panel"><div class="panel-head"><h3>Next lesson</h3><button class="text-btn" onclick="setView(\'timetable\')">View timetable →</button></div>'+(nl?lessonCard(nl):empty('No lessons scheduled yet.'))+'</section><section class="panel"><div class="panel-head"><h3>Upcoming work</h3><button class="text-btn" onclick="setView(\'tasks\')">All tasks →</button></div>'+(upcoming.length?upcoming.map(taskRow).join(''):empty('No upcoming tasks. You are clear.'))+'</section></div><section class="panel"><div class="panel-head"><h3>This week</h3><span class="muted">Your current class rhythm</span></div><div class="mini-week">'+DAYS.map(d=>'<div><b>'+d.slice(0,3)+'</b><span>'+lessons().filter(l=>l.day===d).length+'</span></div>').join('')+'</div></section>'}
+function lessonCard(l){return '<div class="lesson-card"><div class="time-big">'+l.start+'<small>to '+l.end+'</small></div><div><h3>'+esc(unitName(l.unitId))+'</h3><p>'+esc(l.room||'Room not set')+' • '+l.day+'</p></div><span class="pill">+'+l.reminder+'m reminder</span></div>'}
+function taskRow(t){return '<div class="list-row"><div><b>'+esc(t.title)+'</b><small>'+esc(unitName(t.unitId))+' • due '+fmtDate(t.due)+'</small></div><span class="tag">'+esc(t.type||'Task')+'</span></div>'}
+function empty(m){return '<div class="empty">'+m+'</div>'}
+function renderTimetable(){return '<div class="view-head"><div><p class="muted">Weekly repeating schedule</p><h2>'+esc(activeSem().name)+'</h2></div><button class="primary" onclick="addLesson()">＋ Add lesson</button></div><section class="timetable">'+DAYS.map(d=>'<div class="day-col"><div class="day-head">'+d+'<small>'+lessons().filter(l=>l.day===d).length+' classes</small></div>'+lessons().filter(l=>l.day===d).sort((a,b)=>a.start.localeCompare(b.start)).map(l=>'<div class="lesson" onclick="editLesson(\''+l.id+'\')"><strong>'+esc(unitName(l.unitId))+'</strong><span>'+l.start+'–'+l.end+'</span><small>'+esc(l.room||'No room')+' • reminder '+l.reminder+'m</small></div>').join('')||'<div class="day-empty">Free</div>'+'</div>').join('')+'</section>'}
+function renderUnits(){return '<div class="view-head"><div><p class="muted">Subjects in the active semester</p><h2>Units</h2></div><button class="primary" onclick="addUnit()">＋ Add unit</button></div><div class="cards">'+(units().map(u=>'<article class="unit-card"><div class="unit-icon">'+esc(u.name.slice(0,2).toUpperCase())+'</div><h3>'+esc(u.name)+'</h3><p>'+esc(u.code||'No unit code')+' • '+esc(u.room||'Room not set')+'</p><small>'+lessons().filter(l=>l.unitId===u.id).length+' lessons/week</small><div><button class="text-btn" onclick="editUnit(\''+u.id+'\')">Edit</button> <button class="danger-text" onclick="deleteUnit(\''+u.id+'\')">Delete</button></div></article>').join('')||empty('No units yet. Add your first unit.'))+'</div>'}
+function renderTasks(){const ts=state.tasks.filter(t=>t.semesterId===state.activeSemesterId).sort((a,b)=>a.due.localeCompare(b.due));return '<div class="view-head"><div><p class="muted">Assignments, CATs, exams, projects and revision</p><h2>Tasks & Assessments</h2></div><button class="primary" onclick="quickTask()">＋ Add task</button></div><section class="panel"><div class="task-filters"><button class="filter active">All</button></div>'+(ts.map(t=>'<div class="list-row task-row"><input type="checkbox" '+(t.status==='done'?'checked':'')+' onchange="toggleTask(\''+t.id+'\')"><div><b class="'+(t.status==='done'?'done':'')+'">'+esc(t.title)+'</b><small>'+esc(unitName(t.unitId))+' • '+esc(t.type)+' • due '+fmtDate(t.due)+'</small></div><button class="danger-text" onclick="deleteTask(\''+t.id+'\')">Delete</button></div>').join('')||empty('No academic work added yet.'))+'</section>'}
+function renderAttendance(){return '<div class="view-head"><div><p class="muted">Track your class attendance</p><h2>Attendance</h2></div></div><div class="cards">'+units().map(u=>{const a=state.attendance.filter(x=>x.semesterId===state.activeSemesterId&&x.unitId===u.id),p=a.filter(x=>x.status==='present').length,l=a.filter(x=>x.status==='late').length,total=a.length,rate=total?Math.round((p+l*.5)/total*100):0;return '<article class="unit-card"><h3>'+esc(u.name)+'</h3><div class="progress"><span style="width:'+rate+'%"></span></div><strong>'+rate+'%</strong><p>'+p+' present • '+l+' late • '+a.filter(x=>x.status==='absent').length+' absent</p><button class="primary small" onclick="markAttendance(\''+u.id+'\')">＋ Mark class</button></article>'}).join('')+'</div>'}
+function renderSessions(){const ss=state.sessions.filter(x=>x.semesterId===state.activeSemesterId).sort((a,b)=>b.date.localeCompare(a.date)),total=ss.reduce((a,x)=>a+Number(x.minutes),0);return '<div class="view-head"><div><p class="muted">Independent study outside class</p><h2>Study Sessions</h2></div><button class="primary" onclick="addSession()">＋ Log session</button></div><div class="stats">'+card('Total time',Math.floor(total/60)+'h '+total%60+'m','this semester')+card('Sessions',ss.length,'logged blocks')+card('Average',ss.length?Math.round(total/ss.length)+' min':'0 min','per session')+'</div><section class="panel">'+(ss.map(s=>'<div class="list-row"><div><b>'+esc(s.subject)+'</b><small>'+esc(s.type)+' • '+fmtDate(s.date)+'</small></div><strong>'+s.minutes+' min</strong><button class="danger-text" onclick="deleteSession(\''+s.id+'\')">Delete</button></div>').join('')||empty('No study sessions yet.'))+'</section>'}
+function renderSemesters(){return '<div class="view-head"><div><p class="muted">Your academic history stays on this device</p><h2>Semesters</h2></div><button class="primary" onclick="addSemester()">＋ New semester</button></div><div class="cards">'+state.semesters.map(s=>'<article class="unit-card '+(s.id===state.activeSemesterId?'selected':'')+'"><span class="pill">'+esc(s.status||'planned')+'</span><h3>'+esc(s.name)+'</h3><p>'+esc(s.year)+' • '+fmtDate(s.start)+' → '+fmtDate(s.end)+'</p><button class="primary small" onclick="activateSemester(\''+s.id+'\')">'+(s.id===state.activeSemesterId?'Active':'Switch to semester')+'</button></article>').join('')+'</div>'}
+function renderCalendar(){const ev=[...state.events.filter(e=>e.semesterId===state.activeSemesterId),...state.tasks.filter(t=>t.semesterId===state.activeSemesterId).map(t=>({date:t.due,title:t.title,type:t.type}))].sort((a,b)=>a.date.localeCompare(b.date));return '<div class="view-head"><div><p class="muted">Deadlines and academic events</p><h2>Calendar</h2></div><button class="primary" onclick="addEvent()">＋ Add event</button></div><section class="panel calendar-list">'+(ev.map(e=>'<div class="calendar-item"><strong>'+fmtDate(e.date)+'</strong><div><b>'+esc(e.title)+'</b><small>'+esc(e.type||'Event')+'</small></div></div>').join('')||empty('No calendar events yet.'))+'</section>'}
+function renderSettings(){return '<section class="panel settings"><h2>Settings</h2><label>Appearance<select id="themeSetting"><option value="dark" '+(state.theme==='dark'?'selected':'')+'>Dark</option><option value="light" '+(state.theme==='light'?'selected':'')+'>Light</option></select></label><button class="secondary" onclick="requestNotifications()">Enable lesson notifications</button><button class="secondary" onclick="exportData()">Export backup</button><label class="file-label">Import backup<input type="file" accept=".json" onchange="importData(event)"></label><button class="danger" onclick="resetAll()">Reset all local data</button><p class="muted">V1 is local-first. No login, server or credentials are required. The data model is semester-based for future Android conversion.</p></section>'}
+function render(){renderSelect();applyTheme();$('#appView').innerHTML={dashboard:renderDashboard,timetable:renderTimetable,calendar:renderCalendar,units:renderUnits,tasks:renderTasks,attendance:renderAttendance,sessions:renderSessions,semesters:renderSemesters,settings:renderSettings}[state.view||'dashboard']();if($('#themeSetting'))$('#themeSetting').onchange=e=>{state.theme=e.target.value;save();applyTheme()}}
+function formFields(fs){return fs.map(f=>'<label>'+f.label+'<'+(f.type==='select'?'select':'input')+' id="f_'+f.id+'" '+(f.type==='select'?'':'type="'+(f.type||'text')+'"')+' '+(f.required?'required':'')+'>'+(f.type==='select'?f.options.map(o=>'<option value="'+esc(o)+'">'+esc(o)+'</option>').join(''):'')+'</'+(f.type==='select'?'select':'input')+'></label>').join('')}
+function addUnit(u){u=u||{};openModal(u.id?'Edit unit':'Add unit','<div class="form-grid">'+formFields([{id:'name',label:'Unit name',value:u.name,required:true},{id:'code',label:'Unit code',value:u.code},{id:'room',label:'Default room',value:u.room}])+'</div><button class="primary" onclick="saveUnit(\''+(u.id||'')+'\')">Save unit</button>');['name','code','room'].forEach(k=>{if($('#f_'+k))$('#f_'+k).value=u[k]||''})}
+function saveUnit(uid){const name=$('#f_name').value.trim();if(!name)return;const u={id:uid||id(),semesterId:state.activeSemesterId,name,code:$('#f_code').value.trim(),room:$('#f_room').value.trim()};if(uid)Object.assign(state.units.find(x=>x.id===uid),u);else state.units.push(u);save();closeModal();render();toast('Unit saved')}
+function editUnit(uid){addUnit(state.units.find(x=>x.id===uid))}
+function deleteUnit(uid){if(confirm('Delete this unit and its lessons?')){state.units=state.units.filter(x=>x.id!==uid);state.lessons=state.lessons.filter(x=>x.unitId!==uid);save();render()}}
+function addLesson(l){l=l||{};openModal(l.id?'Edit lesson':'Add lesson','<div class="form-grid">'+formFields([{id:'unit',label:'Unit',type:'select',options:units().map(u=>u.id),value:l.unitId||units()[0]?.id},{id:'day',label:'Day',type:'select',options:DAYS,value:l.day||'Monday'},{id:'start',label:'Start',type:'time',value:l.start||'08:00',required:true},{id:'end',label:'End',type:'time',value:l.end||'10:00',required:true},{id:'room',label:'Room',value:l.room},{id:'reminder',label:'Reminder (minutes)',type:'number',value:l.reminder??15}])+'</div><button class="primary" onclick="saveLesson(\''+(l.id||'')+'\')">Save lesson</button>');['unit','day','start','end','room','reminder'].forEach(k=>{if($('#f_'+k)&&l[k]!==undefined)$('#f_'+k).value=l[k]})}
+function saveLesson(lid){const x={id:lid||id(),semesterId:state.activeSemesterId,unitId:$('#f_unit').value,day:$('#f_day').value,start:$('#f_start').value,end:$('#f_end').value,room:$('#f_room').value.trim(),reminder:Number($('#f_reminder').value)||0};if(lid)Object.assign(state.lessons.find(z=>z.id===lid),x);else state.lessons.push(x);save();closeModal();render();toast('Timetable updated')}
+function editLesson(i){const l=state.lessons.find(x=>x.id===i);addLesson(l);$('#modalBody').insertAdjacentHTML('beforeend','<button class="danger" onclick="deleteLesson(\''+i+'\')">Delete lesson</button>')}
+function deleteLesson(i){state.lessons=state.lessons.filter(x=>x.id!==i);save();closeModal();render()}
+function quickTask(){openModal('Add task','<div class="form-grid">'+formFields([{id:'title',label:'Title',required:true},{id:'unit',label:'Unit',type:'select',options:['none',...units().map(u=>u.id)]},{id:'type',label:'Type',type:'select',options:['Assignment','CAT','Test','Exam','Project','Revision']},{id:'due',label:'Due date',type:'date',value:today(),required:true}])+'</div><button class="primary" onclick="saveTask()">Save task</button>');$('#f_due').value=today()}
+function saveTask(){const title=$('#f_title').value.trim();if(!title)return;state.tasks.push({id:id(),semesterId:state.activeSemesterId,title,unitId:$('#f_unit').value==='none'?'':$('#f_unit').value,type:$('#f_type').value,due:$('#f_due').value,status:'open'});save();closeModal();render();toast('Task added')}
+function toggleTask(i){const t=state.tasks.find(x=>x.id===i);t.status=t.status==='done'?'open':'done';save();render()}
+function deleteTask(i){state.tasks=state.tasks.filter(x=>x.id!==i);save();render()}
+function addSession(){openModal('Log study session','<div class="form-grid">'+formFields([{id:'subject',label:'Subject / topic',required:true},{id:'minutes',label:'Minutes',type:'number',value:45,required:true},{id:'date',label:'Date',type:'date',value:today(),required:true},{id:'type',label:'Type',type:'select',options:['Revision','Practice','Reading','Notes','Homework']}])+'</div><button class="primary" onclick="saveSession()">Save session</button>');$('#f_minutes').value=45;$('#f_date').value=today()}
+function saveSession(){state.sessions.push({id:id(),semesterId:state.activeSemesterId,subject:$('#f_subject').value.trim(),minutes:Number($('#f_minutes').value),date:$('#f_date').value,type:$('#f_type').value});save();closeModal();render()}
+function deleteSession(i){state.sessions=state.sessions.filter(x=>x.id!==i);save();render()}
+function markAttendance(uid){openModal('Mark attendance','<p>'+esc(unitName(uid))+' • today</p><div class="attendance-buttons"><button onclick="saveAttendance(\''+uid+'\',\'present\')">Present</button><button onclick="saveAttendance(\''+uid+'\',\'late\')">Late</button><button onclick="saveAttendance(\''+uid+'\',\'absent\')">Absent</button><button onclick="saveAttendance(\''+uid+'\',\'excused\')">Excused</button></div>')}
+function saveAttendance(uid,status){state.attendance.push({id:id(),semesterId:state.activeSemesterId,unitId:uid,date:today(),status});save();closeModal();render()}
+function addSemester(){openModal('Create semester','<div class="form-grid">'+formFields([{id:'name',label:'Semester name',value:'Semester 4',required:true},{id:'year',label:'Academic year',value:'2027',required:true},{id:'start',label:'Start date',type:'date',value:today(),required:true},{id:'end',label:'End date',type:'date',value:today(),required:true}])+'</div><button class="primary" onclick="saveSemester()">Create semester</button>');$('#f_name').value='Semester 4';$('#f_year').value='2027';$('#f_start').value=today();$('#f_end').value=today()}
+function saveSemester(){const s={id:id(),name:$('#f_name').value.trim(),year:$('#f_year').value.trim(),start:$('#f_start').value,end:$('#f_end').value,status:'planned'};state.semesters.push(s);state.activeSemesterId=s.id;save();closeModal();render();toast('New semester created')}
+function activateSemester(i){state.activeSemesterId=i;save();render();toast('Active semester changed')}
+function addEvent(){openModal('Add calendar event','<div class="form-grid">'+formFields([{id:'title',label:'Event title',required:true},{id:'date',label:'Date',type:'date',value:today(),required:true},{id:'type',label:'Type',type:'select',options:['Event','Exam','Deadline','Study session']}])+'</div><button class="primary" onclick="saveEvent()">Save event</button>');$('#f_date').value=today()}
+function saveEvent(){state.events.push({id:id(),semesterId:state.activeSemesterId,title:$('#f_title').value.trim(),date:$('#f_date').value,type:$('#f_type').value});save();closeModal();render()}
+function requestNotifications(){if(!('Notification'in window)){toast('Notifications are not supported here');return}Notification.requestPermission().then(x=>toast(x==='granted'?'Notifications enabled':'Permission not granted'))}
+function exportData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download='study-tracker-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{Object.assign(state,JSON.parse(r.result));save();render();toast('Backup imported')}catch{toast('Invalid backup file')}};r.readAsText(f)}
+function resetAll(){if(confirm('Reset all local data? This cannot be undone.')){localStorage.removeItem(KEY);location.reload()}}
+render();
