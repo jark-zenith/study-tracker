@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body class="auth-loading">
+<div class="tech-background" aria-hidden="true"><div class="tech-grid"></div><div class="tech-orb orb-a"></div><div class="tech-orb orb-b"></div><div class="tech-orb orb-c"></div><div class="scanlines"></div><div class="cursor-glow"></div></div>
 <div id="authGate" class="auth-gate hidden">  <div class="auth-shell">    <div class="auth-brand"><div class="p-mark large">P</div><div><strong>STUDY TRACKER</strong><small>PRUDEN TECHNOLOGIES</small></div></div>    <div class="auth-card">      <div class="auth-copy"><span class="pill">PRUDEN TECHNOLOGIES • STUDENT OS</span><h1 id="authTitle">Welcome back</h1><p id="authSubtitle">Sign in to your private academic workspace.</p></div>      <div class="auth-tabs"><button id="loginTab" class="auth-tab active">Sign in</button><button id="registerTab" class="auth-tab">Create account</button></div>      <form id="loginForm" class="auth-form">        <label>Username<input id="loginUsername" autocomplete="username" required></label>        <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label>        <button class="primary auth-submit" type="submit">Sign in</button>        <p class="auth-error" id="loginError"></p>      </form>      <form id="registerForm" class="auth-form hidden">        <div class="profile-upload auth-profile"><div id="registerAvatar" class="avatar placeholder">P</div><label>Profile photo<input id="registerPhoto" type="file" accept="image/png,image/jpeg,image/webp"></label></div>        <div class="form-grid compact">          <label>Username<input id="registerUsername" autocomplete="username" minlength="3" maxlength="30" required></label>          <label>Password<input id="registerPassword" type="password" autocomplete="new-password" minlength="8" required></label>          <label>Display name<input id="registerName" maxlength="80"></label>          <label>Institution<input id="registerInstitution" maxlength="120"></label>          <label>City / location<input id="registerCity" maxlength="80"></label>          <label>Program / course<input id="registerProgram" maxlength="100"></label>        </div>        <button class="primary auth-submit" type="submit">Create private workspace</button>        <p class="auth-error" id="registerError"></p>      </form>      <small class="auth-foot">Your academic data is isolated to your account. You can complete the rest of your semester setup after signing in.</small>    </div>  </div></div>
 <div class="app hidden" id="mainApp">
 <aside class="sidebar">
@@ -42,6 +43,13 @@
 </header>
 <div id="appView"></div>
 </main>
+<div class="mobile-nav" aria-label="Mobile navigation">
+  <button class="mobile-nav-btn active" data-view="dashboard">⌂<span>Home</span></button>
+  <button class="mobile-nav-btn" data-view="timetable">▦<span>Plan</span></button>
+  <button class="mobile-nav-btn" data-view="tasks">✓<span>Tasks</span></button>
+  <button class="mobile-nav-btn" data-view="focus">●<span>Focus</span></button>
+  <button class="mobile-nav-btn" data-view="settings">⚙<span>Profile</span></button>
+</div>
 </div>
 <div class="modal hidden" id="modal"><div class="modal-card"><div class="modal-head"><h2 id="modalTitle"></h2><button class="icon-btn" id="closeModal">×</button></div><div id="modalBody"></div></div></div>
 <div id="toast" class="toast"></div>
