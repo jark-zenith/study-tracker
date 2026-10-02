@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: pruden-study-tracker
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: STUDY_TRACKER_SYNC_KEY
+        sync: false
