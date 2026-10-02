@@ -47,10 +47,12 @@ fun StudyTrackerApp(
     var semesterMenu by remember { mutableStateOf(false) }
 
     val active = state.semesters.firstOrNull { it.id == state.activeSemesterId }
-        ?: state.semesters.first()
-    val activeUnits = state.units.filter { it.semesterId == active.id }
-    val activeLessons = state.lessons.filter { it.semesterId == active.id }
-    val activeTasks = state.tasks.filter { it.semesterId == active.id }
+        ?: state.semesters.firstOrNull()
+    val activeId = active?.id.orEmpty()
+    val activeName = active?.name ?: "Set up your first semester"
+    val activeUnits = state.units.filter { it.semesterId == activeId }
+    val activeLessons = state.lessons.filter { it.semesterId == activeId }
+    val activeTasks = state.tasks.filter { it.semesterId == activeId }
 
     Scaffold(
         topBar = {
@@ -72,7 +74,7 @@ fun StudyTrackerApp(
                 actions = {
                     Box {
                         TextButton(onClick = { semesterMenu = true }) {
-                            Text(active.name, color = PrudenBlue, fontWeight = FontWeight.Bold)
+                            Text(activeName, color = PrudenBlue, fontWeight = FontWeight.Bold)
                             Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                         }
                         DropdownMenu(
@@ -219,6 +221,21 @@ private fun Dashboard(
                     Modifier.weight(1f)
                 )
                 StatCard("Open work", openTasks.toString(), Modifier.weight(1f))
+            }
+        }
+        if (active == null) {
+            item {
+                Card {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("FIRST RUN", color = PrudenBlue, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Create your first semester", fontSize = 20.sp, fontWeight = FontWeight.Black)
+                        Text(
+                            "Your account is ready. Add a semester, then create your units and timetable.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
         item {
