@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#08111f"><meta name="description" content="Study Tracker — semesters, timetable, lessons, tasks, attendance and study sessions.">
-<title>Study Tracker | JARK</title>
+<meta name="theme-color" content="#07101d"><meta name="description" content="Study Tracker — a student operating system by Pruden Technologies.">
+<link rel="manifest" href="manifest.json">
+<title>Study Tracker | Pruden Technologies</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -11,7 +12,10 @@
 <body>
 <div class="app">
 <aside class="sidebar">
-  <div class="brand"><div class="brand-mark">ST</div><div><strong>Study Tracker</strong><small>JARK student system</small></div></div>
+  <div class="brand">
+    <div class="p-mark" aria-label="Pruden Technologies">P</div>
+    <div><strong>STUDY TRACKER</strong><small>PRUDEN TECHNOLOGIES</small></div>
+  </div>
   <nav>
     <button class="nav-btn active" data-view="dashboard">⌂ <span>Dashboard</span></button>
     <button class="nav-btn" data-view="timetable">▦ <span>Timetable</span></button>
@@ -19,15 +23,22 @@
     <button class="nav-btn" data-view="units">▤ <span>Units</span></button>
     <button class="nav-btn" data-view="tasks">✓ <span>Tasks & Assessments</span></button>
     <button class="nav-btn" data-view="attendance">◉ <span>Attendance</span></button>
+    <button class="nav-btn" data-view="grades">％ <span>Grades</span></button>
     <button class="nav-btn" data-view="sessions">⏱ <span>Study Sessions</span></button>
+    <button class="nav-btn" data-view="focus">● <span>Focus Lab</span></button>
+    <button class="nav-btn" data-view="notes">✎ <span>Notes</span></button>
+    <button class="nav-btn" data-view="resources">↗ <span>Resources</span></button>
+    <button class="nav-btn" data-view="analytics">◒ <span>Analytics</span></button>
     <button class="nav-btn" data-view="semesters">◆ <span>Semesters</span></button>
     <button class="nav-btn" data-view="settings">⚙ <span>Settings</span></button>
   </nav>
-  <div class="sidebar-foot"><span class="status-dot"></span> Local-first • No account required</div>
+  <div class="sidebar-foot"><span class="status-dot"></span> Local-first • backend optional</div>
 </aside>
 <main class="main">
-<header class="topbar"><div><p class="eyebrow">STUDENT CONTROL CENTER</p><h1 id="pageTitle">Dashboard</h1></div>
-<div class="top-actions"><select id="semesterSelect" aria-label="Active semester"></select><button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button></div></header>
+<header class="topbar">
+  <div><p class="eyebrow">PRUDEN TECHNOLOGIES • STUDENT OS</p><h1 id="pageTitle">Dashboard</h1></div>
+  <div class="top-actions"><span id="syncStatus" class="sync-status">Local only</span><select id="semesterSelect" aria-label="Active semester"></select><button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button></div>
+</header>
 <div id="appView"></div>
 </main>
 </div>
